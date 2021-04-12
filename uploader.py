@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from timeit import default_timer as timer
 import datetime as dt
 import fdb
 import logging
@@ -135,7 +134,6 @@ def main():
     try:
         engine_oracle = sa.create_engine(
             f"{DB['name']}+{DB['driver']}://{DB['username']}:{DB['password']}@{DB['host']}:{DB['port']}/{DB['section']}",
-            fast_executemany=True,
             echo=False
         )
         engine_oracle.connect()
@@ -167,7 +165,7 @@ def main():
             with conn.begin():
                 max_id_in_out = engine_oracle.execute(
                     query_max_id
-                    ).fetchone()[0]
+                ).fetchone()[0]
     except Exception as e:
         s3 = "Не удалось получить максимальный ID_IN_OUT из БД ЦИУ"
         logging.error(s3 + ' ' + str(e))
@@ -222,7 +220,6 @@ def main():
             axis=1
         )
         df = df.drop(columns=['date_pass', 'time_pass'])
-        print(df)
     else:
         s_0 = "Новых записей в БД СКУД не найдено."
         logging.info(s_0)
@@ -266,8 +263,4 @@ def main():
 
 
 if __name__ == "__main__":
-    start = timer()
     main()
-    end = timer()
-    s_time = f"Время выполнения программы: {end - start} секунд"
-    logging.info(s_time)
