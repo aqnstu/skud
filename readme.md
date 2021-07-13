@@ -1,4 +1,6 @@
-## Таблицы в percouser
+Скрипт для получения данных о проходах из БД СКУД в БД информационнй системы.
+
+###Таблицы в percouser
 
 1. skud_upload_log – лог выгрузки данных из скуд. Поля: id, exit_point, message, is_failure, timestamp_exec
 
