@@ -13,15 +13,14 @@ from config import DB
 logging.basicConfig(
     level=logging.DEBUG,
     handlers=[
-        logging.FileHandler(
-            filename='uploader.log', encoding='utf-8', mode='a+'
-            )
-        ],
-    datefmt='%d-%m-%Y %H:%M:%S',
-    format='%(asctime)s %(name)s - %(levelname)s - %(message)s',
+        logging.FileHandler(filename="uploader.log", encoding="utf-8", mode="a+")
+    ],
+    datefmt="%d-%m-%Y %H:%M:%S",
+    format="%(asctime)s %(name)s - %(levelname)s - %(message)s",
 )
 
-query_data = sa.text("""
+query_data = sa.text(
+    """
 SELECT
     DISTINCT ID_IN_OUT,
     STAFF_ID,
@@ -109,18 +108,20 @@ GROUP BY
     DATE_PASS,
     TIME_PASS,
     TYPE_PASS
-""")
+"""
+)
 
 query_max_id = sa.text(
-"""
+    """
     SELECT 
         MAX(id_in_out) 
     FROM 
         skud_data
-""")
+"""
+)
 
 query_log = sa.text(
-"""
+    """
     INSERT INTO
         skud_upload_log (exit_point, message, is_failure, timestamp_exec)
     VALUES
@@ -128,31 +129,32 @@ query_log = sa.text(
 """
 )
 
+
 def main():
     logging.info("Начало работы...")
     # создаем engine для взаимодействия с БД НГТУ
     try:
         engine_oracle = sa.create_engine(
             f"{DB['name']}+{DB['driver']}://{DB['username']}:{DB['password']}@{DB['host']}:{DB['port']}/{DB['section']}",
-            echo=False
+            echo=False,
         )
         engine_oracle.connect()
     except Exception as e:
         s1 = "Не удалось подключиться к БД ЦИУ."
-        logging.error(s1 + ' ' + str(e))
+        logging.error(s1 + " " + str(e))
         sys.exit(1)
     logging.info("Engine для работы с БД ЦИУ успешно создан")
 
     # создаем engine для взаимодействия с БД СКУД
     try:
         engine_firebird = sa.create_engine(
-            'firebird+fdb://sysdba:masterkey@localhost/D:/YandexDisk/work/skud/db.fdb?charset=UTF-8',
-            echo=False
+            "firebird+fdb://sysdba:masterkey@localhost/D:/YandexDisk/work/skud/db.fdb?charset=UTF-8",
+            echo=False,
         )
         engine_firebird.connect()
     except Exception as e:
         s2 = "Не удалось подключиться к БД СКУД"
-        logging.error(s2 + ' ' + str(e))
+        logging.error(s2 + " " + str(e))
         engine_oracle.execute(
             query_log.bindparams(ep=2, msg=s2, ifail=1, te=dt.datetime.today())
         )
@@ -163,12 +165,10 @@ def main():
     try:
         with engine_oracle.connect() as conn:
             with conn.begin():
-                max_id_in_out = engine_oracle.execute(
-                    query_max_id
-                ).fetchone()[0]
+                max_id_in_out = engine_oracle.execute(query_max_id).fetchone()[0]
     except Exception as e:
         s3 = "Не удалось получить максимальный ID_IN_OUT из БД ЦИУ"
-        logging.error(s3 + ' ' + str(e))
+        logging.error(s3 + " " + str(e))
         engine_oracle.execute(
             query_log.bindparams(ep=3, msg=s3, ifail=1, te=dt.datetime.today())
         )
@@ -181,10 +181,11 @@ def main():
         with engine_firebird.connect() as conn:
             with conn.begin():
                 data = engine_firebird.execute(
-                    query_data.bindparams(lstid=max_id_in_out))
+                    query_data.bindparams(lstid=max_id_in_out)
+                )
     except Exception as e:
         s4 = "Не удалось получить данные из БД СКУД."
-        logging.error(s4 + ' ' + str(e))
+        logging.error(s4 + " " + str(e))
         engine_oracle.execute(
             query_log.bindparams(ep=4, msg=s4, ifail=1, te=dt.datetime.today())
         )
@@ -197,29 +198,27 @@ def main():
         df = pd.DataFrame(
             data_fetch,
             columns=[
-                'id_in_out',
-                'skud_id_stuff',
-                'full_fio',
-                'type_post',
-                'full_post',
-                'subdivision',
-                'chair',
-                'student_group',
-                'birthday_date',
-                'area',
-                'date_pass',
-                'time_pass',
-                'type_pass',
-            ]
+                "id_in_out",
+                "skud_id_stuff",
+                "full_fio",
+                "type_post",
+                "full_post",
+                "subdivision",
+                "chair",
+                "student_group",
+                "birthday_date",
+                "area",
+                "date_pass",
+                "time_pass",
+                "type_pass",
+            ],
         )
 
         # из даты и времение получаем timestamp
-        df['timestamp_pass'] = df.apply(
-            lambda row: dt.datetime.combine(
-                row['date_pass'], row['time_pass']),
-            axis=1
+        df["timestamp_pass"] = df.apply(
+            lambda row: dt.datetime.combine(row["date_pass"], row["time_pass"]), axis=1
         )
-        df = df.drop(columns=['date_pass', 'time_pass'])
+        df = df.drop(columns=["date_pass", "time_pass"])
     else:
         s_0 = "Новых записей в БД СКУД не найдено."
         logging.info(s_0)
@@ -232,22 +231,22 @@ def main():
     logging.info("Выгрузка данных в БД ЦИУ началась...")
     # выгрузка skud_data в БД НГТУ
     try:
-        object_columns = [col for col in df.columns[df.dtypes == 'object'].tolist()]
+        object_columns = [col for col in df.columns[df.dtypes == "object"].tolist()]
         dtypes = {object_col: sa.types.VARCHAR(1000) for object_col in object_columns}
         df.to_sql(
-            name='skud_data',
+            name="skud_data",
             con=engine_oracle,
-            schema='PERCOUSER',
-            if_exists='append',
+            schema="PERCOUSER",
+            if_exists="append",
             index=False,
-            index_label=None,       # TODO: определить множество индексов таблицы
+            index_label=None,  # TODO: определить множество индексов таблицы
             chunksize=5000,
-            method=None,             # ! 11 версия Oracle не поддерживает 'multi' :(
-            dtype=dtypes
+            method=None,  # ! 11 версия Oracle не поддерживает 'multi' :(
+            dtype=dtypes,
         )
     except Exception as e:
         s5 = "Не удалось выгрузить данные в БД ЦИУ."
-        logging.error(s5 + ' ' + str(e))
+        logging.error(s5 + " " + str(e))
         engine_oracle.execute(
             query_log.bindparams(ep=0, msg=s5, ifail=1, te=dt.datetime.today())
         )
