@@ -21,94 +21,94 @@ logging.basicConfig(
 
 query_data = sa.text(
     """
-SELECT
-    DISTINCT ID_IN_OUT,
-    STAFF_ID,
-    FULL_FIO,
-    LIST(TYPE_POST) as TYPE_POST,
-    FULL_POST,
-    LIST(SUBDIVISION) as SUBDIVISION,
-    CHAIR,
-    STUDENT_GROUP,
-    BIRTHDAY_DATE,
-    AREA,
-    DATE_PASS,
-    TIME_PASS,
-    TYPE_PASS
-FROM
-    (
-        SELECT
-            TI.ID_TB_IN as ID_IN_OUT,
-            TI.STAFF_ID,
-            S.FULL_FIO,
-            AR.DISPLAY_NAME as TYPE_POST,
-            FP.INFO_DATA as FULL_POST,
-            SUBREF.DISPLAY_NAME as SUBDIVISION,
-            KAF.INFO_DATA as CHAIR,
-            GR.INFO_DATA as STUDENT_GROUP,
-            SD.BIRTHDAY_DATE,
-            ATR.DISPLAY_NAME AS AREA,
-            TI.DATE_PASS,
-            TI.TIME_PASS,
-            TI.TYPE_PASS
-        FROM
-            TABEL_INTERMEDIADATE as TI
-            JOIN STAFF as S ON TI.STAFF_ID = S.ID_STAFF -- для получения полного имени
-            JOIN STAFF_DOCS as SD ON TI.STAFF_ID = SD.STAFF_ID -- для получения даты рождения
-            JOIN AREAS_TREE AS ATR ON TI.AREAS_TREE_ID = ATR.ID_AREAS_TREE -- для получения места, куда осуществлялся вход
-            JOIN (
-                SELECT
-                    DISTINCT STAFF_ID,
-                    APPOINT_ID,
-                    SUBDIV_ID
-                FROM
-                    STAFF_REF
-            ) AS STREF ON TI.STAFF_ID = STREF.STAFF_ID -- для получения APPOINT_ID для каждого STAFF_ID, чтобы в дальнейшем получить тип "должности"
-            JOIN APPOINT_REF AS AR ON STREF.APPOINT_ID = AR.ID_REF -- для получения типа посетителя (типа "должности")
-            JOIN (
-                SELECT
-                    STAFF_ID,
-                    INFO_DATA
-                FROM
-                    STAFF_INFO_DATA_STR
-                WHERE
-                    REF_ID = 185672
-            ) as KAF ON TI.STAFF_ID = KAF.STAFF_ID -- для получение кафедры кафедры; информация по REF_ID содержится в таблице STAFF_INFO_REF
-            JOIN (
-                SELECT
-                    STAFF_ID,
-                    INFO_DATA
-                FROM
-                    STAFF_INFO_DATA_STR
-                WHERE
-                    REF_ID = 185673
-            ) as GR ON TI.STAFF_ID = GR.STAFF_ID -- для получения группы студента
-            JOIN (
-                SELECT
-                    STAFF_ID,
-                    INFO_DATA
-                FROM
-                    STAFF_INFO_DATA_STR
-                WHERE
-                    REF_ID = 245556
-            ) as FP ON TI.STAFF_ID = FP.STAFF_ID -- для получения "полного" названия должности
-            JOIN SUBDIV_REF as SUBREF ON STREF.SUBDIV_ID = SUBREF.ID_REF -- для получения подразделения
-        WHERE
-            TI.ID_TB_IN > :lstid
-    ) r
-GROUP BY
-    ID_IN_OUT,
-    STAFF_ID,
-    FULL_FIO,
-    FULL_POST,
-    CHAIR,
-    STUDENT_GROUP,
-    BIRTHDAY_DATE,
-    AREA,
-    DATE_PASS,
-    TIME_PASS,
-    TYPE_PASS
-"""
+    SELECT
+        DISTINCT ID_IN_OUT,
+        STAFF_ID,
+        FULL_FIO,
+        LIST(TYPE_POST) as TYPE_POST,
+        FULL_POST,
+        LIST(SUBDIVISION) as SUBDIVISION,
+        CHAIR,
+        STUDENT_GROUP,
+        BIRTHDAY_DATE,
+        AREA,
+        DATE_PASS,
+        TIME_PASS,
+        TYPE_PASS
+    FROM
+        (
+            SELECT
+                TI.ID_TB_IN as ID_IN_OUT,
+                TI.STAFF_ID,
+                S.FULL_FIO,
+                AR.DISPLAY_NAME as TYPE_POST,
+                FP.INFO_DATA as FULL_POST,
+                SUBREF.DISPLAY_NAME as SUBDIVISION,
+                KAF.INFO_DATA as CHAIR,
+                GR.INFO_DATA as STUDENT_GROUP,
+                SD.BIRTHDAY_DATE,
+                ATR.DISPLAY_NAME AS AREA,
+                TI.DATE_PASS,
+                TI.TIME_PASS,
+                TI.TYPE_PASS
+            FROM
+                TABEL_INTERMEDIADATE as TI
+                JOIN STAFF as S ON TI.STAFF_ID = S.ID_STAFF -- для получения полного имени
+                JOIN STAFF_DOCS as SD ON TI.STAFF_ID = SD.STAFF_ID -- для получения даты рождения
+                JOIN AREAS_TREE AS ATR ON TI.AREAS_TREE_ID = ATR.ID_AREAS_TREE -- для получения места, куда осуществлялся вход
+                JOIN (
+                    SELECT
+                        DISTINCT STAFF_ID,
+                        APPOINT_ID,
+                        SUBDIV_ID
+                    FROM
+                        STAFF_REF
+                ) AS STREF ON TI.STAFF_ID = STREF.STAFF_ID -- для получения APPOINT_ID для каждого STAFF_ID, чтобы в дальнейшем получить тип "должности"
+                JOIN APPOINT_REF AS AR ON STREF.APPOINT_ID = AR.ID_REF -- для получения типа посетителя (типа "должности")
+                JOIN (
+                    SELECT
+                        STAFF_ID,
+                        INFO_DATA
+                    FROM
+                        STAFF_INFO_DATA_STR
+                    WHERE
+                        REF_ID = 185672
+                ) as KAF ON TI.STAFF_ID = KAF.STAFF_ID -- для получение кафедры кафедры; информация по REF_ID содержится в таблице STAFF_INFO_REF
+                JOIN (
+                    SELECT
+                        STAFF_ID,
+                        INFO_DATA
+                    FROM
+                        STAFF_INFO_DATA_STR
+                    WHERE
+                        REF_ID = 185673
+                ) as GR ON TI.STAFF_ID = GR.STAFF_ID -- для получения группы студента
+                JOIN (
+                    SELECT
+                        STAFF_ID,
+                        INFO_DATA
+                    FROM
+                        STAFF_INFO_DATA_STR
+                    WHERE
+                        REF_ID = 245556
+                ) as FP ON TI.STAFF_ID = FP.STAFF_ID -- для получения "полного" названия должности
+                JOIN SUBDIV_REF as SUBREF ON STREF.SUBDIV_ID = SUBREF.ID_REF -- для получения подразделения
+            WHERE
+                TI.ID_TB_IN > :lstid
+        ) r
+    GROUP BY
+        ID_IN_OUT,
+        STAFF_ID,
+        FULL_FIO,
+        FULL_POST,
+        CHAIR,
+        STUDENT_GROUP,
+        BIRTHDAY_DATE,
+        AREA,
+        DATE_PASS,
+        TIME_PASS,
+        TYPE_PASS
+    """
 )
 
 query_max_id = sa.text(
@@ -117,7 +117,7 @@ query_max_id = sa.text(
         MAX(id_in_out) 
     FROM 
         skud_data
-"""
+    """
 )
 
 query_log = sa.text(
@@ -126,7 +126,7 @@ query_log = sa.text(
         skud_upload_log (exit_point, message, is_failure, timestamp_exec)
     VALUES
         (:ep, :msg, :ifail, :te)
-"""
+    """
 )
 
 
