@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import fdb
 
-from config import DLL_PATH
+from config import LOCAL_DB, DLL_PATH, DB_DUMP_FILENAME, DB_FILENAME
 
 
 def report_progress(line):
@@ -11,9 +11,9 @@ def report_progress(line):
 
 def main():
     fdb.load_api(DLL_PATH)
-    svc = fdb.services.connect(user='sysdba', password='masterkey')
-    svc.restore('Backup1.fbk', 'db.fdb', callback=report_progress)
-
+    svc = fdb.services.connect(user=LOCAL_DB['username'],
+                               password=LOCAL_DB['password'])
+    svc.restore(DB_DUMP_FILENAME, DB_FILENAME, callback=report_progress)
 
 if __name__ == '__main__':
     main()
