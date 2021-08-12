@@ -7,7 +7,7 @@ import pandas as pd
 import sqlalchemy as sa
 import sys
 
-from config import DB
+from config import DB, LOCAL_DB
 
 
 logging.basicConfig(
@@ -148,7 +148,10 @@ def main():
     # создаем engine для взаимодействия с БД СКУД
     try:
         engine_firebird = sa.create_engine(
-            "firebird+fdb://sysdba:masterkey@localhost/D:/YandexDisk/work/skud/db.fdb?charset=UTF-8",
+            f"{LOCAL_DB['name']}+{LOCAL_DB['driver']}"
+            f"://{LOCAL_DB['username']}:{LOCAL_DB['password']}"
+            f"@{LOCAL_DB['host']}{':' + LOCAL_DB['port'] if LOCAL_DB['port'] else ''}"
+            f"?{LOCAL_DB['encoding']}",
             echo=False,
         )
         engine_firebird.connect()
@@ -241,7 +244,6 @@ def main():
             index=False,
             index_label=None,  # TODO: определить множество индексов таблицы
             chunksize=5000,
-            method=None,  # ! 11 версия Oracle не поддерживает 'multi' :(
             dtype=dtypes,
         )
     except Exception as e:
