@@ -186,6 +186,7 @@ def main():
                 data = engine_firebird.execute(
                     query_data.bindparams(lstid=max_id_in_out)
                 )
+                data_fetch = data.fetchall()
     except Exception as e:
         s4 = "Не удалось получить данные из БД СКУД."
         logging.error(s4 + " " + str(e))
@@ -196,7 +197,6 @@ def main():
     logging.info("Получение данных из БД СКУД успешно завершено.")
 
     #  формируем DataFrame, если были получены какие-то данные
-    data_fetch = data.fetchall()
     if len(data_fetch):
         df = pd.DataFrame(
             data_fetch,
